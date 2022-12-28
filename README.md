@@ -9,17 +9,30 @@ Terraform version: 1.1.6
     ```
     cp env.sh.template env.sh
     nano env.sh
+
+    cp aws_lambda_functions/profile_faker/env.sh.template aws_lambda_functions/profile_faker/env.sh
+    nano env.sh
     ```
 
 2. Source `env.sh`
 
     ```
     source env.sh
+    source aws_lambda_functions/profile_faker/env.sh
     ```
 
-3. Run terraform
+3. Build and push docker image
 
    ```
-   terraform plan -var="env_name=dev"
-   terraform apply -var="env_name=dev"
+   cd aws_lambda_functions/profile_faker
+   make docker/push TAG=dev
+   cd -
+   ```
+
+4. Run terraform
+
+   ```
+   terraform init
+   terraform plan
+   terraform apply
    ```
