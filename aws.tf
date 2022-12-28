@@ -2,25 +2,27 @@ variable "env_name" {
   description = "Environment name"
 }
 
-locals {
-  function_name               = "text_scrambler"
-  function_handler            = "main.handler"
-  function_runtime            = "python3.9"
-  function_timeout_in_seconds = 5
-
-  function_source_dir = "${path.module}/aws_lambda_functions/${local.function_name}"
+variable "aws_account_id" {
+  description = "AWS account ID"
 }
 
-resource "aws_lambda_function" "function" {
-  function_name = "${local.function_name}-${var.env_name}"
-  handler       = local.function_handler
-  runtime       = local.function_runtime
-  timeout       = local.function_timeout_in_seconds
+variable "aws_region" {
+  description = "AWS region"
+}
 
-  filename         = "${local.function_source_dir}.zip"
-  source_code_hash = data.archive_file.function_zip.output_base64sha256
+data "aws_ecr_repository" "profile_faker_ecr_repo" {
+  name = "profile-faker"
+}
 
-  role = aws_iam_role.function_role.arn
+resource "aws_lambda_function" "profile_faker_function" {
+  function_name = "profile-faker-${var.env_name}"
+  timeout       = 5 # seconds
+  image_uri     = "${data.aws_ecr_repository.profile_faker_ecr_repo.repository_url}:${var.env_name}"
+  package_type  = "Image"
+  # image_uri     = "${var.aws_account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/profile-faker:${var.env_name}"
+
+
+  role = aws_iam_role.profile_faker_function_role.arn
 
   environment {
     variables = {
@@ -29,15 +31,9 @@ resource "aws_lambda_function" "function" {
   }
 }
 
-data "archive_file" "function_zip" {
-  source_dir  = local.function_source_dir
-  type        = "zip"
-  output_path = "${local.function_source_dir}.zip"
-}
+resource "aws_iam_role" "profile_faker_function_role" {
+  name = "profile-faker-${var.env_name}"
 
-resource "aws_iam_role" "function_role" {
-  name = "${local.function_name}-${var.env_name}"
-  
   assume_role_policy = jsonencode({
     Statement = [
       {

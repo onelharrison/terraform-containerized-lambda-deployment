@@ -1,16 +1,13 @@
-import json
-import random
+from faker import Faker
 
-
-def scramble(text: str) -> str:
-    return "".join(random.sample(text, len(text)))
+fake = Faker()
 
 
 def handler(event, context):
     return {
         "statusCode": 200,
         "headers": {"Content-Type": "application/json"},
-        "body": json.dumps({"result": scramble(event["text"])}),
+        "body": json.dumps({"profile": { "name": fake.name(), "address": fake.address() }}),
     }
 
 
