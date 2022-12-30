@@ -1,3 +1,4 @@
+import json
 from faker import Faker
 
 fake = Faker()
